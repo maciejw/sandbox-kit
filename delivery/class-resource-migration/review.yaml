@@ -1,0 +1,63 @@
+review_id: class-resource-migration-review-2026-09-20
+feature_id: sandboxkit-class-resource-migration
+review_mode: independent-read-only
+contract_ref:
+  path: D:\sandbox-kit\CLASS-RESOURCE-MIGRATION-PLAN.md
+  digest: 16D64F119031C89C03503B537E7648F9A3E749458D051E71AB87BFCE1D6A9EAE
+baseline_ref:
+  path: D:\sandbox-kit\delivery\class-resource-migration\baseline.json
+  digest: D36FC3FAEE97DCE290DB01A7199443CDA748D7748DCDB02573F538BF4861DCBA
+review_baseline_ref:
+  path: D:\sandbox-kit\delivery\class-resource-migration\review-baseline.json
+  digest: 24C9805A4EF6A2AA2B9CCED93D32F490A31999F11DB2480D8FA3BF9C6CB80C38
+contract_packets:
+  - path: D:\sandbox-kit\delivery\class-resource-migration\feature.yaml
+    sha256: DBAC49305C95BCB04F26DDD0F7BAE8F00B0723E89C88D18E38741C0E0F5113D3
+  - path: D:\sandbox-kit\delivery\class-resource-migration\task-cr1.yaml
+    sha256: E34CB62827F2A8A492C4047A2FF886BAFB06CD64DFF7603F5D324AEC0DDEF2D0
+  - path: D:\sandbox-kit\delivery\class-resource-migration\task-cr2.yaml
+    sha256: 04FA39A1EE9C3CEF18F422EBD353FF4411FC287AA27BD410BFC2465EB1F433A6
+review_boundary:
+  include:
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\module\SandboxKit\SandboxKit.psd1
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\module\SandboxKit\SandboxKit.psm1
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\tests\ClassResources.Tests.ps1
+    - D:\sandbox-kit\docker-sbx-almalinux9\Dockerfile
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\test-powershell.ps1
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\dev-bootstrap.ps1
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\dev-bootstrap
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\tests\Bootstrap.Tests.ps1
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\README.md
+  exclude:
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\resources\
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\poc\
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\go\
+    - D:\sandbox-kit\delivery\class-resource-migration\
+    - D:\sandbox-kit\CLASS-RESOURCE-MIGRATION-PLAN.md
+known_unrelated_changes:
+  workspace_state: no-git-checkout
+  declaration: Files outside review_boundary.include are pre-existing user/agent work and are not attributed to this feature. No reset, cleanup, or broad diff inference is allowed.
+implementation_evidence:
+  cr1:
+    packet: D:\sandbox-kit\delivery\class-resource-migration\task-cr1.yaml
+    evidence_packet: D:\sandbox-kit\delivery\class-resource-migration\evidence-cr1.yaml
+    evidence_packet_sha256: EF57E19FBA69A4D2923918DAE61CBC33A84F97A4C328AEEE05407C54AC49B6A7
+    changed_files_digest: a34c6c6101ae797866095b9ec33b946a435c117e9c9a0c54073cfe0181b91b48
+    pester_command: pwsh -NoLogo -NoProfile -Command 'Import-Module Pester; $c=New-PesterConfiguration; $c.TestDrive.Enabled=$false; $c.TestRegistry.Enabled=$false; $c.Output.Verbosity="Detailed"; $c.Run.Path="./docker-sbx-almalinux9/bootstrap/ps/tests/ClassResources.Tests.ps1"; Invoke-Pester -Configuration $c'
+    pester_result: 13 passed, 0 failed, 0 skipped
+    discovery_result: DnfPackagePresent, HttpTool, ProfileConfiguration all ClassBased/PowerShell
+  cr2:
+    packet: D:\sandbox-kit\delivery\class-resource-migration\task-cr2.yaml
+    evidence_packet: D:\sandbox-kit\delivery\class-resource-migration\evidence-cr2.yaml
+    evidence_packet_sha256: A31E20B3882FEF1A07E9608754FFE0B4361A5069B3D7AE65AB4335C0B6DF3D52
+    changed_files_digest: 9af027fd4dc1262acf0cde8f584af11214826255738c57d3e70efdc5cb6180a0
+    pester_command: pwsh -NoLogo -NoProfile -Command 'Import-Module Pester; $c=New-PesterConfiguration; $c.TestDrive.Enabled=$false; $c.TestRegistry.Enabled=$false; $c.Output.Verbosity="Detailed"; $c.Run.Path="./docker-sbx-almalinux9/bootstrap/ps/tests/Bootstrap.Tests.ps1"; Invoke-Pester -Configuration $c'
+    pester_result: 8 passed, 0 failed, 0 skipped
+    parse_result: dev-bootstrap.ps1 and test-powershell.ps1 parsed successfully
+combined_verification:
+  pester_result: 21 passed, 0 failed, 0 skipped
+  linux_smoke_owner: main-agent
+  linux_smoke_result: Pester 6.1.0 Bootstrap.Tests 8 passed; DSC 3.3 Microsoft.Adapter/PowerShell listed all three ClassBased resources; profile set/test had hadErrors=false and inDesiredState=true
+side_effects:
+  permitted: read-only inspection and local test execution
+  forbidden: edits, image publication, package installation, destructive cleanup

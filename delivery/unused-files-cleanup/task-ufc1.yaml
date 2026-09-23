@@ -1,0 +1,120 @@
+task_id: ufc1-delete-unused-sources
+feature_id: unused-files-cleanup
+objective: Delete the exact superseded source set, reconcile its four live references, and prove active implementations are unchanged.
+requirement_ids:
+  - UFC-DELETE
+  - UFC-REFERENCES
+  - UFC-PRESERVE
+  - UFC-VERIFY
+requirement_excerpt:
+  UFC-DELETE: Exactly the 23 manifest-backed legacy PowerShell and POC files are absent; no other source file is removed.
+  UFC-REFERENCES: Live architecture, bootstrap documentation, driver commentary, and structural tests describe the class implementation and contain no positive dependency on removed sources.
+  UFC-PRESERVE: Active Bash resources, canonical Bash stage, SandboxKit class module, DSC documents, historical evidence, and all out-of-bound workspace content remain unchanged.
+  UFC-VERIFY: Parsing, focused host Pester, exact hash checks, and the disposable AlmaLinux class-stage harness pass.
+contract_ref:
+  path: D:\sandbox-kit\UNUSED-FILES-CLEANUP-PLAN.md
+  sections:
+    - requirements
+    - plan
+    - decisions
+    - deferred_scope
+  digest: 666EFD756D34437C1438EAF36EE0AEB89667DB3E35617293E6E6CBFBF1366F34
+workspace_root: D:\sandbox-kit
+write_owner: feature_implementer
+write_boundary:
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\Common.ps1
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\PackageInput.ps1
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\package.ps1
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\tool.ps1
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\user.ps1
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\package.dsc.resource.json
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\tool.dsc.resource.json
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\user.dsc.resource.json
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\poc\
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\go\
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\poc\
+  - D:\sandbox-kit\docker-sbx-almalinux9\DSC-ARCHITECTURE.md
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\README.md
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\dev-bootstrap.ps1
+  - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\tests\Bootstrap.Tests.ps1
+read_context:
+  - path: D:\sandbox-kit\delivery\unused-files-cleanup\baseline.json
+    purpose: Exact deletion, editable-file, and preservation hashes.
+    anchors:
+      - delete
+      - edit
+      - preserve
+  - path: D:\sandbox-kit\docker-sbx-almalinux9\Dockerfile
+    purpose: Proves the canonical Bash resources remain active and the deleted PowerShell resources/POCs are not copied.
+    anchors:
+      - development-powershell
+      - development
+  - path: D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\module\SandboxKit\SandboxKit.psm1
+    purpose: Current class-resource behavior that documentation must describe without editing it.
+    anchors:
+      - class DnfPackagePresent
+      - class HttpTool
+      - class ProfileConfiguration
+current_state:
+  - The class stage already excludes legacy PowerShell command resources.
+  - All POC trees are disconnected from both image stages.
+  - Live documentation still describes the POCs and pre-class implementation model.
+  - Active Bash resources remain required by the canonical development stage.
+required_changes:
+  - Before deletion, compare every baseline.delete file hash and stop on any mismatch.
+  - Delete exactly all baseline.delete files using apply_patch; remove only resulting empty directories with explicit non-recursive operations.
+  - Update DSC-ARCHITECTURE.md to describe the current native PowerShell class module, remove the deleted POC sections, and keep Go migration deferred.
+  - Remove the POC paragraph from bootstrap/README.md while preserving active Bash and class-resource instructions.
+  - Generalize the legacy Common.ps1 comment in ps/dev-bootstrap.ps1 without changing executable behavior.
+  - Add one focused Bootstrap.Tests.ps1 test named "does not retain superseded PowerShell command resources or POC trees" that asserts all legacy file paths and POC roots are absent.
+must_preserve:
+  - Every baseline.preserve file byte-for-byte.
+  - Dockerfile and both active image stage behaviors.
+  - ClassResources.Tests.ps1 and SandboxKit module byte-for-byte.
+  - Historical plan and delivery evidence content.
+  - Unrelated workspace changes; do not reset, restore, or broadly clean.
+non_goals:
+  - Dockerfile cleanup or path/copy pruning.
+  - Bash retirement or final artifact reorganization.
+  - Runtime implementation, schema, version, checksum, or configuration changes.
+prerequisites:
+  - Confirmed user authorization recorded in the contract.
+  - All baseline.delete hashes match before deletion.
+dependency_edges: []
+verification:
+  commands:
+    - id: ufc1-reference
+      cwd: D:\sandbox-kit
+      command: rg -n "bootstrap/(ps/poc|go/poc|poc/)|Common\.ps1|PackageInput\.ps1|package\.ps1|tool\.ps1|user\.ps1" docker-sbx-almalinux9 -g "!bootstrap/ps/tests/Bootstrap.Tests.ps1"
+    - id: ufc1-parse
+      cwd: D:\sandbox-kit
+      command: pwsh -NoLogo -NoProfile -Command "$files=@('./docker-sbx-almalinux9/bootstrap/ps/dev-bootstrap.ps1','./docker-sbx-almalinux9/bootstrap/ps/tests/Bootstrap.Tests.ps1'); foreach($file in $files){$tokens=$null;$errors=$null;[Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file),[ref]$tokens,[ref]$errors)|Out-Null;if($errors.Count){$errors;exit 1}}"
+    - id: ufc1-pester
+      cwd: D:\sandbox-kit
+      command: pwsh -NoLogo -NoProfile -Command "$c=New-PesterConfiguration;$c.TestDrive.Enabled=$false;$c.TestRegistry.Enabled=$false;$c.Output.Verbosity='Detailed';$c.Run.Path=@('./docker-sbx-almalinux9/bootstrap/ps/tests/ClassResources.Tests.ps1','./docker-sbx-almalinux9/bootstrap/ps/tests/Bootstrap.Tests.ps1');Invoke-Pester -Configuration $c"
+  required_tests:
+    - Bootstrap.Tests.ps1 includes and passes "does not retain superseded PowerShell command resources or POC trees" with concrete absence assertions for all four target groups.
+    - Existing class discovery, direct syntax, property contract, Bash-stage preservation, and launcher tests remain enabled and pass.
+  manual_handoff:
+    - Main agent runs the disposable AlmaLinux test-powershell.ps1 harness.
+baseline:
+  kind: manifest
+  value: D:\sandbox-kit\delivery\unused-files-cleanup\baseline.json
+  digest: FF46132876CC41AB4746270C583266DB4F2D9E86988DBEABC40214009DED6981
+permissions:
+  allowed_side_effects:
+    - Delete only baseline.delete entries after exact hash validation.
+    - Edit only declared write-boundary documentation, comment, and test files.
+    - Remove exact empty directories left by those deletions without recursion.
+  forbidden_side_effects:
+    - Image, package, sandbox, registry, or network mutations.
+    - Recursive deletion, Git cleanup/reset/restore, or edits outside the write boundary.
+completion_when:
+  - All baseline.delete paths are absent and all baseline.preserve hashes match.
+  - Reference and parse checks pass.
+  - Focused Pester suite passes with the required exact test.
+  - Implementation evidence packet is complete and reproducible.
+stop_and_report_when:
+  - Any baseline.delete hash differs before deletion.
+  - Any requested edit requires a file outside the write boundary.
+  - A preserved artifact changes or a required test cannot be retained.

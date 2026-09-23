@@ -1,0 +1,32 @@
+evidence_id: ufc1-implementation-evidence-2026-09-21
+task_id: ufc1-delete-unused-sources
+contract_digest: 666EFD756D34437C1438EAF36EE0AEB89667DB3E35617293E6E6CBFBF1366F34
+baseline_digest: FF46132876CC41AB4746270C583266DB4F2D9E86988DBEABC40214009DED6981
+execution:
+  delegated_implementer: /root/unused_files_cleanup_retry
+  main_agent_adjustments:
+    - Corrected the architecture acceptance text to describe typed class properties through the PowerShell adapter.
+    - Corrected the absence test to check the deleted bootstrap/go root.
+    - Applied the independent reviewer's hardening so absence assertions reject any filesystem node at a deleted path.
+deleted:
+  count: 23
+  result: Every baseline.delete path is absent, including the complete bootstrap/ps/poc, bootstrap/go, and bootstrap/poc trees.
+changed_files:
+  - path: D:\sandbox-kit\docker-sbx-almalinux9\DSC-ARCHITECTURE.md
+    sha256: EDA43150F1E9ABB7EDB689F23DB3AABDDB46D761DCB5A546DE059300A147660C
+  - path: D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\README.md
+    sha256: 42D719B92FDCEE9C1105014D85AC604FEE14564E5B5D4F316FEAB2114DB5E432
+  - path: D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\dev-bootstrap.ps1
+    sha256: C4C6C92F1B719848EE8A4E038E43E91D7B4651FAE8E1815833BD72E4E6F3D569
+  - path: D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\tests\Bootstrap.Tests.ps1
+    sha256: 2972637FFE0EC052D4FFB12BC003BB65E630B920C1DF46CCA73FAF4588117A83
+verification:
+  boundary: 23 deletion targets absent; all 14 baseline.preserve hashes match.
+  references: No stale references outside the intentional negative-assertion test.
+  parse: dev-bootstrap.ps1 and Bootstrap.Tests.ps1 parsed successfully.
+  host_pester: Pester 6.2.0; ClassResources.Tests.ps1 and Bootstrap.Tests.ps1; 22 passed, 0 failed, 0 skipped.
+  required_test: 'does not retain superseded PowerShell command resources or POC trees' passed.
+  linux_harness: Pester 6.1.0 Bootstrap.Tests.ps1 9 passed; DSC 3.3.0 profile set hadErrors=false; profile test hadErrors=false and inDesiredState=true.
+scope:
+  preserved: Active Bash resources, Dockerfile, SandboxKit module, DSC documents, ClassResources.Tests.ps1, historical plans, and prior delivery evidence.
+  deferred: Bash retirement, Dockerfile cleanup, and artifact-folder reorganization.

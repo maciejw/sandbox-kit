@@ -1,0 +1,39 @@
+schemaVersion: "2"
+kind: sandbox
+name: almalinux9-podman
+displayName: AlmaLinux 9 + rootless Podman
+description: Experimental Docker Sandbox kit using an AlmaLinux 9 userspace.
+
+# Grants namespace/mount capabilities inside the SBX microVM.
+# Podman still runs rootlessly as agent; this is not host Docker privilege.
+security:
+  privileged: true
+
+sandbox:
+  image: "localhost/almalinux9-sbx:dev"
+  entrypoint: ["/usr/local/bin/sbx-shell"]
+  command:
+    default: []
+    interactive: []
+
+# The tools document downloads the pinned .NET SDK from this host. GitHub and
+# Node.js are covered by the default SBX package/code policies.
+permissions:
+  network:
+    allow:
+      - "builds.dotnet.microsoft.com:443"
+
+# Native overlay needs a real filesystem rather than overlay-on-overlay.
+volumes:
+  - path: /home/agent/.local/share/containers
+    size: 4g
+    mode: "0755"
+
+setup:
+  install:
+    - command: /usr/local/sbin/setup-sbx-runtime
+      user: "0"
+      description: Configure AlmaLinux CA trust, TUN networking, and Podman storage.
+  startup:
+    - command: ["/usr/local/sbin/setup-sbx-runtime"]
+      user: "0"

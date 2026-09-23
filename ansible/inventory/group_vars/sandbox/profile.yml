@@ -1,0 +1,4 @@
+---
+# Default guest path for the host-mounted developer profile. Callers may
+# override it with --extra-vars when their sandbox uses a different mount.
+profile_source: /d/sandbox-kit/configuration/profile

@@ -1,0 +1,140 @@
+---
+- name: Derive paths for {{ tool_resource.properties.name }}
+  ansible.builtin.set_fact:
+    tool_properties: "{{ tool_resource.properties }}"
+    tool_store_root: "{{ lookup('ansible.builtin.env', 'HOME') }}/.local/share/sbx-tools"
+    tool_download_root: "{{ lookup('ansible.builtin.env', 'HOME') }}/.cache/sbx-tools/downloads"
+    tool_state_root: "{{ lookup('ansible.builtin.env', 'HOME') }}/.local/state/sbx-tools"
+    tool_release_name: >-
+      {{ tool_resource.properties.version }}-{{ tool_resource.properties.checksum[:12] }}
+
+- name: Derive versioned tool paths for {{ tool_resource.properties.name }}
+  ansible.builtin.set_fact:
+    tool_root: "{{ tool_store_root }}/{{ tool_properties.name }}"
+    tool_release_root: >-
+      {{ tool_store_root }}/{{ tool_properties.name }}/{{ tool_release_name }}
+    tool_download_path: >-
+      {{ tool_download_root }}/{{ tool_properties.name }}/{{ tool_release_name }}
+    tool_state_path: "{{ tool_state_root }}/{{ tool_properties.name }}.json"
+
+- name: Create per-user tool directories for {{ tool_properties.name }}
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ tool_root }}"
+    - "{{ tool_release_root }}"
+    - "{{ tool_download_path | dirname }}"
+    - "{{ tool_state_root }}"
+    - "{{ lookup('ansible.builtin.env', 'HOME') }}/.local/bin"
+
+- name: Download with the configured checksum for {{ tool_properties.name }}
+  ansible.builtin.get_url:
+    url: "{{ tool_properties.source }}"
+    dest: "{{ tool_download_path }}"
+    checksum: "{{ tool_properties.algorithm }}:{{ tool_properties.checksum }}"
+    mode: '0644'
+  when: not ansible_check_mode
+
+- name: Copy binary into the release tree for {{ tool_properties.name }}
+  ansible.builtin.copy:
+    src: "{{ tool_download_path }}"
+    dest: "{{ tool_release_root }}/{{ tool_properties.name }}"
+    remote_src: true
+    mode: '0755'
+  when:
+    - not ansible_check_mode
+    - tool_properties.format == 'binary'
+
+- name: Extract the archive into the release tree for {{ tool_properties.name }}
+  ansible.builtin.unarchive:
+    src: "{{ tool_download_path }}"
+    dest: "{{ tool_release_root }}"
+    remote_src: true
+    extra_opts:
+      - "--strip-components={{ tool_properties.stripComponents | int }}"
+    creates: "{{ tool_release_root }}/.sandboxkit-extracted"
+  register: archive_result
+  when:
+    - not ansible_check_mode
+    - tool_properties.format == 'archive'
+
+- name: Mark the archive as extracted for {{ tool_properties.name }}
+  ansible.builtin.file:
+    path: "{{ tool_release_root }}/.sandboxkit-extracted"
+    state: touch
+    mode: '0644'
+  when:
+    - not ansible_check_mode
+    - tool_properties.format == 'archive'
+    - archive_result is changed
+
+- name: Check command paths for {{ tool_properties.name }}
+  ansible.builtin.stat:
+    path: "{{ tool_release_root }}/{{ item.value }}"
+  loop: "{{ tool_properties.commands | dict2items }}"
+  register: tool_command_stats
+  when: not ansible_check_mode
+
+- name: Collect invalid command paths for {{ tool_properties.name }}
+  ansible.builtin.set_fact:
+    invalid_tool_command_paths: >-
+      {{
+        (
+          tool_command_stats.results
+          | rejectattr('stat.exists')
+          | map(attribute='item.value')
+          | list
+        )
+        +
+        (
+          tool_command_stats.results
+          | selectattr('stat.exists')
+          | rejectattr('stat.isreg')
+          | rejectattr('stat.islnk')
+          | map(attribute='item.value')
+          | list
+        )
+      }}
+  when: not ansible_check_mode
+
+- name: Fail when a command path is missing for {{ tool_properties.name }}
+  ansible.builtin.assert:
+    that:
+      - invalid_tool_command_paths | length == 0
+    fail_msg: >-
+      {{ tool_properties.name }} has invalid command path(s):
+      {{ invalid_tool_command_paths | join(', ') }} in {{ tool_release_root }}.
+  when: not ansible_check_mode
+
+- name: Set command modes for {{ tool_properties.name }}
+  ansible.builtin.file:
+    path: "{{ tool_release_root }}/{{ item.value }}"
+    mode: '0755'
+  loop: "{{ tool_properties.commands | dict2items }}"
+  when: not ansible_check_mode
+
+- name: Update current link for {{ tool_properties.name }}
+  ansible.builtin.file:
+    src: "{{ tool_release_root }}"
+    dest: "{{ tool_root }}/current"
+    state: link
+    force: true
+  when: not ansible_check_mode
+
+- name: Create command links for {{ tool_properties.name }}
+  ansible.builtin.file:
+    src: "{{ tool_root }}/current/{{ item.value }}"
+    dest: "{{ lookup('ansible.builtin.env', 'HOME') }}/.local/bin/{{ item.key }}"
+    state: link
+    force: true
+  loop: "{{ tool_properties.commands | dict2items }}"
+  when: not ansible_check_mode
+
+- name: Record applied state for {{ tool_properties.name }}
+  ansible.builtin.copy:
+    content: "{{ tool_properties | to_nice_json }}\n"
+    dest: "{{ tool_state_path }}"
+    mode: '0644'
+  when: not ansible_check_mode

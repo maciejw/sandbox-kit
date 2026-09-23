@@ -1,0 +1,13 @@
+[user]
+    name = Maciej Warszawski
+    email = maciej@warszawski.pro
+[core]
+    checkStat = minimal
+    excludesFile = ~/.config/sbx-dev/gitignore
+    pager = delta
+[interactive]
+    diffFilter = delta --color-only
+[delta]
+    navigate = true
+[merge]
+    conflictStyle = zdiff3

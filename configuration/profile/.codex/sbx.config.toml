@@ -1,0 +1,7 @@
+# Opt in with: codex --profile sbx
+# Full access inside the SBX VM, including its mounted host workspace.
+# Never use this profile as a substitute for an external isolation boundary.
+model = "gpt-6-astra"
+model_reasoning_effort = "low"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"

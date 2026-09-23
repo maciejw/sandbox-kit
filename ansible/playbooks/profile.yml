@@ -1,0 +1,14 @@
+---
+- name: Restore the developer profile
+  hosts: sandbox
+  gather_facts: false
+  vars:
+    profile_target: "{{ lookup('ansible.builtin.env', 'HOME') }}"
+  tasks:
+    - name: Restore profile files into the agent home
+      ansible.builtin.copy:
+        src: "{{ profile_source }}/"
+        dest: "{{ profile_target }}/"
+        remote_src: true
+        mode: preserve
+        directory_mode: '0755'

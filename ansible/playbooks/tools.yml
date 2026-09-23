@@ -1,0 +1,11 @@
+---
+- name: Install the configured developer tools
+  hosts: sandbox
+  gather_facts: true
+  tasks:
+    - name: Apply each configured HTTP tool
+      ansible.builtin.include_tasks: ../tasks/install-tool.yml
+      loop: "{{ sandboxkit_tools }}"
+      loop_control:
+        loop_var: tool_resource
+        label: "{{ tool_resource.properties.name }}"

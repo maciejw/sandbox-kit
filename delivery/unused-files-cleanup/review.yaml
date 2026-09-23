@@ -1,0 +1,37 @@
+review_id: unused-files-cleanup-review-2026-09-21
+feature_id: unused-files-cleanup
+review_mode: independent-read-only
+contract_ref:
+  path: D:\sandbox-kit\UNUSED-FILES-CLEANUP-PLAN.md
+  digest: 666EFD756D34437C1438EAF36EE0AEB89667DB3E35617293E6E6CBFBF1366F34
+baseline_ref:
+  path: D:\sandbox-kit\delivery\unused-files-cleanup\baseline.json
+  digest: FF46132876CC41AB4746270C583266DB4F2D9E86988DBEABC40214009DED6981
+contract_packets:
+  - path: D:\sandbox-kit\delivery\unused-files-cleanup\feature.yaml
+    sha256: 99B82FD6EC879ACBA7269924BF7C11A1DA5018451555730DA7E184B577FEFFFA
+  - path: D:\sandbox-kit\delivery\unused-files-cleanup\task-ufc1.yaml
+    sha256: 2F0CC95B92099C2B550C656628CCE4C052FEC6EBF9A78EA3AB865B8098AB4E15
+implementation_evidence:
+  path: D:\sandbox-kit\delivery\unused-files-cleanup\evidence-ufc1.yaml
+  sha256: CF747A4E72B0549DBD3454EDB43AE4056F00AC5CFF6BB03BEB7ECE376644DF8D
+review_boundary:
+  deleted_paths: All 23 baseline.delete entries.
+  edited_paths:
+    - D:\sandbox-kit\docker-sbx-almalinux9\DSC-ARCHITECTURE.md
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\README.md
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\dev-bootstrap.ps1
+    - D:\sandbox-kit\docker-sbx-almalinux9\bootstrap\ps\tests\Bootstrap.Tests.ps1
+  preserved_paths: All 14 baseline.preserve entries.
+known_unrelated_changes:
+  workspace_state: no-git-checkout
+  declaration: Files outside the declared deletion, edit, and preservation boundaries are pre-existing user or agent work and are not attributed to this cleanup. No reset, cleanup, or broad diff inference is allowed.
+review_requirements:
+  - Confirm the deletion set is exact and every preserved hash matches.
+  - Confirm live documentation describes the current class implementation without positive dependency on removed sources.
+  - Confirm the new structural test checks every legacy file and all deleted POC roots.
+  - Confirm host and Linux evidence satisfy UFC-VERIFY.
+  - Report findings by severity and return accept or reject.
+side_effects:
+  permitted: Read-only inspection and optional local verification commands.
+  forbidden: Any file edit, package installation, image mutation, or cleanup.

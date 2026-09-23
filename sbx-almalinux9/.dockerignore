@@ -1,0 +1,4 @@
+*.tar
+.git
+.sbx-verify.*
+bootstrap/config

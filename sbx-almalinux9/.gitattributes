@@ -1,0 +1,8 @@
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.ps1 text eol=lf
+bootstrap/dev-bootstrap text eol=lf
+bootstrap/config/* text eol=lf

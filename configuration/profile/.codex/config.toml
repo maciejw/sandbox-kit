@@ -1,0 +1,5 @@
+# Managed by SandboxKit's GNU Stow profile package.
+model = "gpt-6-astra"
+model_reasoning_effort = "low"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"

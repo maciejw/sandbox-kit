@@ -1,0 +1,20 @@
+{
+  "source": "D:\\sandbox-kit\\delivery\\class-resource-migration\\baseline.json",
+  "sourceSha256": "D36FC3FAEE97DCE290DB01A7199443CDA748D7748DCDB02573F538BF4861DCBA",
+  "existingBeforeHashes": [
+    {"path":"docker-sbx-almalinux9/Dockerfile","sha256":"E3D2509FDEF9EB69DFD8CEE52D9178A3D87F3878022D56BEF81B8F1439896283"},
+    {"path":"docker-sbx-almalinux9/bootstrap/test-powershell.ps1","sha256":"DE5920D8514A8E9B47D974A17C455272617A6D426551D3E4D48ADEC525455762"},
+    {"path":"docker-sbx-almalinux9/bootstrap/README.md","sha256":"05970F636DE1C2F4920D2F768FFA76870AB5D87963701AE4981313621DC8FCFB"},
+    {"path":"docker-sbx-almalinux9/bootstrap/ps/tests/Bootstrap.Tests.ps1","sha256":"5CD52AE96D9EE61562A373BBEBC15BA795B73DF710585B0D47F9F4E277CB1F67"}
+  ],
+  "newAtPhaseStart": [
+    "docker-sbx-almalinux9/bootstrap/ps/module/SandboxKit/SandboxKit.psd1",
+    "docker-sbx-almalinux9/bootstrap/ps/module/SandboxKit/SandboxKit.psm1",
+    "docker-sbx-almalinux9/bootstrap/ps/tests/ClassResources.Tests.ps1"
+  ],
+  "additionalExistingTargets": [
+    {"path":"docker-sbx-almalinux9/bootstrap/ps/dev-bootstrap.ps1","beforeSha256":"41B82BC2B99D7B430D2666C1AB8B0D63428757C96B3B540732F10ECB8CFDB408","source":"pre-change development-powershell image"},
+    {"path":"docker-sbx-almalinux9/bootstrap/ps/dev-bootstrap","beforeSha256":"636363057DFEC0DF88337D40E1DFB3F01B6352789D9054A3F795E513BF20F5AC","source":"pre-change development-powershell image"}
+  ],
+  "workspaceConstraint": "No Git checkout is available; do not infer unrelated diffs outside the declared review boundary."
+}

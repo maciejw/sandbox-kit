@@ -1,0 +1,161 @@
+---
+# Ansible-owned tool state for the sandbox developer tools.
+sandboxkit_tools:
+  - name: jq
+    properties:
+      name: jq
+      version: 1.8.2
+      source: https://github.com/jqlang/jq/releases/download/jq-1.8.2/jq-linux-amd64
+      checksum: b1c22172dd303f3be49e935aa56aa48a8b7a46e0bc838b4997d3bb451495870f
+      algorithm: sha256
+      format: binary
+      stripComponents: 0
+      commands:
+        jq: jq
+  - name: yq
+    properties:
+      name: yq
+      version: 4.53.6
+      source: https://github.com/mikefarah/yq/releases/download/v4.53.6/yq_linux_amd64
+      checksum: c5f056448f973ae7d39b5401949648a78f2dc1947d6a8eb65be60d5c504b9385
+      algorithm: sha256
+      format: binary
+      stripComponents: 0
+      commands:
+        yq: yq
+  - name: dotnet
+    properties:
+      name: dotnet
+      version: 10.0.401
+      source: https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.401/dotnet-sdk-10.0.401-linux-x64.tar.gz
+      checksum: 51c8b999af9e8dd9998c9edc5944e19a90788862068acd38694e098889054ce8c23d4f0c5cccfa16bf187d044562359e5ee69a9f8ad0bbe913ba90311fbce25b
+      algorithm: sha512
+      format: archive
+      stripComponents: 0
+      commands:
+        dotnet: dotnet
+  - name: node
+    properties:
+      name: node
+      version: 24.21.0
+      source: https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64.tar.xz
+      checksum: fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f56cb2d6
+      algorithm: sha256
+      format: archive
+      stripComponents: 1
+      commands:
+        node: bin/node
+        npm: bin/npm
+        npx: bin/npx
+        corepack: bin/corepack
+  - name: codex
+    properties:
+      name: codex
+      version: 0.156.1
+      source: https://github.com/openai/codex/releases/download/rust-v0.156.1/codex-package-x86_64-unknown-linux-musl.tar.gz
+      checksum: 8b711520beddf385467b8da4d2c93736637c6ba1e46811cf0d8606b7c490b6f6
+      algorithm: sha256
+      format: archive
+      stripComponents: 0
+      commands:
+        codex: bin/codex
+  - name: eza
+    properties:
+      name: eza
+      version: 0.23.5
+      source: https://github.com/eza-community/eza/releases/download/v0.23.5/eza_x86_64-unknown-linux-musl.tar.gz
+      checksum: e06eebab74b73d6b7d51a796a353824b001bea82df077706382e100815d28904
+      algorithm: sha256
+      format: archive
+      stripComponents: 0
+      commands:
+        eza: eza
+  - name: fd
+    properties:
+      name: fd
+      version: 10.5.0
+      source: https://github.com/sharkdp/fd/releases/download/v10.5.0/fd-v10.5.0-x86_64-unknown-linux-musl.tar.gz
+      checksum: 761c72dc8e120d85b22292063be8a796e2eeb20eb3e4f38b8fa2343ccf3514a7
+      algorithm: sha256
+      format: archive
+      stripComponents: 1
+      commands:
+        fd: fd
+  - name: ripgrep
+    properties:
+      name: ripgrep
+      version: 15.2.0
+      source: https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-x86_64-unknown-linux-musl.tar.gz
+      checksum: 33e15bcf1624b25cdd2a55813a47a2f95dbe126268203e76aa6a585d1e7b149c
+      algorithm: sha256
+      format: archive
+      stripComponents: 1
+      commands:
+        rg: rg
+  - name: delta
+    properties:
+      name: delta
+      version: 0.19.2
+      source: https://github.com/dandavison/delta/releases/download/0.19.2/delta-0.19.2-x86_64-unknown-linux-musl.tar.gz
+      checksum: f1ea01ca7728ce3462debc359f39dfc7cbbc1a63224b71fefabf92042864aa1b
+      algorithm: sha256
+      format: archive
+      stripComponents: 1
+      commands:
+        delta: delta
+  - name: zoxide
+    properties:
+      name: zoxide
+      version: 0.10.0
+      source: https://github.com/ajeetdsouza/zoxide/releases/download/v0.10.0/zoxide-0.10.0-x86_64-unknown-linux-musl.tar.gz
+      checksum: 2d93385b99f3e82cf2701609a1bffcad863fbeb75aa3fe7eb6be4d29be68b1ae
+      algorithm: sha256
+      format: archive
+      stripComponents: 0
+      commands:
+        zoxide: zoxide
+  - name: bat
+    properties:
+      name: bat
+      version: 0.26.1
+      source: https://github.com/sharkdp/bat/releases/download/v0.26.1/bat-v0.26.1-x86_64-unknown-linux-musl.tar.gz
+      checksum: 0dcd8ac79732c0d5b136f11f4ee00e581440e16a44eab5b3105b611bbf2cf191
+      algorithm: sha256
+      format: archive
+      stripComponents: 1
+      commands:
+        bat: bat
+  - name: fzf
+    properties:
+      name: fzf
+      version: 0.74.4
+      source: https://github.com/junegunn/fzf/releases/download/v0.74.4/fzf-0.74.4-linux_amd64.tar.gz
+      checksum: 05e6813a337cc722c3ed07e54a764b75cc5d671e2e60459db0ba696ee5fa7504
+      algorithm: sha256
+      format: archive
+      stripComponents: 0
+      commands:
+        fzf: fzf
+  - name: edit
+    properties:
+      name: edit
+      version: 2.0.0
+      source: https://github.com/microsoft/edit/releases/download/v2.0.0/edit-2.0.0-x86_64-linux-gnu.tar.gz
+      checksum: 7854d477e73e7b94cd02f35959eea778a4d8408f6ffc657644ae1a715124786c
+      algorithm: sha256
+      format: archive
+      stripComponents: 0
+      commands:
+        edit: edit
+        msedit: edit
+  - name: oh-my-posh
+    properties:
+      name: oh-my-posh
+      version: 31.3.0
+      source: https://github.com/JanDeDobbeleer/oh-my-posh/releases/download/v31.3.0/posh-linux-amd64
+      checksum: 92a253b607dbc632f9e45c9de06cb9650a1a3e7c36df2012a7b7600f22dcad80
+      algorithm: sha256
+      format: binary
+      stripComponents: 0
+      commands:
+        oh-my-posh: oh-my-posh
