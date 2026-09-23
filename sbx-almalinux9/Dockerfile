@@ -84,7 +84,7 @@ RUN <<'INSTALL_DEVELOPMENT_RUNTIME'
 set -euxo pipefail
 dnf -y install epel-release
 dnf -y install \
-  git jq tar gzip xz findutils unzip libicu powershell docker-compose-plugin \
+  git jq stow tar gzip xz findutils unzip libicu powershell docker-compose-plugin \
   openssl-libs krb5-libs zlib libstdc++ libgcc lttng-ust \
   podman fuse-overlayfs slirp4netns
 dnf -y upgrade --refresh
