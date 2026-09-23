@@ -1,14 +1,53 @@
 ---
-- name: Restore the developer profile
+- name: Ensure the developer profile repository clone
   hosts: sandbox
   gather_facts: false
   vars:
     profile_target: "{{ lookup('ansible.builtin.env', 'HOME') }}"
+    profile_clone_path: "{{ profile_target }}/.dotfiles"
+    profile_repository_origin: "{{ 'file://' ~ profile_repository }}"
   tasks:
-    - name: Restore profile files into the agent home
-      ansible.builtin.copy:
-        src: "{{ profile_source }}/"
-        dest: "{{ profile_target }}/"
-        remote_src: true
-        mode: preserve
-        directory_mode: '0755'
+    - name: Inspect the existing dotfiles path
+      ansible.builtin.stat:
+        path: "{{ profile_clone_path }}"
+      register: profile_clone_status
+
+    - name: Refuse a non-directory dotfiles path
+      ansible.builtin.assert:
+        that:
+          - profile_clone_status.stat.isdir
+        fail_msg: "{{ profile_clone_path }} exists but is not a directory; leaving it untouched."
+      when: profile_clone_status.stat.exists
+
+    - name: Read the existing clone origin without updating it
+      ansible.builtin.command:
+        argv:
+          - git
+          - -C
+          - "{{ profile_clone_path }}"
+          - remote
+          - get-url
+          - origin
+      register: profile_clone_origin
+      changed_when: false
+      failed_when: false
+      when: profile_clone_status.stat.exists
+
+    - name: Refuse a checkout from another repository
+      ansible.builtin.assert:
+        that:
+          - profile_clone_origin.rc == 0
+          - profile_clone_origin.stdout | trim in [profile_repository, profile_repository_origin]
+        fail_msg: "{{ profile_clone_path }} is not a clone of {{ profile_repository }}; leaving it untouched."
+      when: profile_clone_status.stat.exists
+
+    # The mounted source's current HEAD is the desired initial snapshot; later
+    # runs never invoke this task for an existing clone.
+    - name: Clone the repository into the agent home when absent  # noqa: latest[git]
+      ansible.builtin.git:
+        repo: "{{ profile_repository }}"
+        dest: "{{ profile_clone_path }}"
+        version: HEAD
+        update: false
+        force: false
+      when: not profile_clone_status.stat.exists

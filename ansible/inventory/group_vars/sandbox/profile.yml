@@ -1,4 +1,3 @@
 ---
-# Default guest path for the host-mounted developer profile. Callers may
-# override it with --extra-vars when their sandbox uses a different mount.
-profile_source: /d/sandbox-kit/configuration/profile
+# Read-only host-mounted repository used only when the home clone is absent.
+profile_repository: /d/sandbox-kit/.git
