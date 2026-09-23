@@ -5,7 +5,7 @@
   vars:
     profile_target: "{{ lookup('ansible.builtin.env', 'HOME') }}"
     profile_clone_path: "{{ profile_target }}/.dotfiles"
-    profile_repository_origin: "{{ 'file://' ~ profile_repository }}"
+    profile_repository_origin: "{{ 'file://' ~ (profile_repository | urlencode) }}"
   tasks:
     - name: Inspect the existing dotfiles path
       ansible.builtin.stat:
@@ -45,7 +45,7 @@
     # runs never invoke this task for an existing clone.
     - name: Clone the repository into the agent home when absent  # noqa: latest[git]
       ansible.builtin.git:
-        repo: "{{ profile_repository }}"
+        repo: "{{ profile_repository_origin }}"
         dest: "{{ profile_clone_path }}"
         version: HEAD
         update: false
