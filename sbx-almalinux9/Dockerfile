@@ -25,8 +25,8 @@ curl -fsSL --retry 3 --proto '=https' --proto-redir '=https' \
 dnf clean all
 
 groupadd --gid 1000 agent
-# Keep the image home empty so the mounted profile can own its files
-# without conflicting with /etc/skel defaults such as .bashrc.
+# Keep the image home empty; runtime Stow owns profile files and avoids
+# conflicting with /etc/skel defaults such as .bashrc.
 useradd --uid 1000 --gid agent --no-create-home --home-dir /home/agent --shell /bin/bash \
   -K SUB_UID_MIN=100000 -K SUB_UID_COUNT=65536 \
   -K SUB_GID_MIN=100000 -K SUB_GID_COUNT=65536 agent

@@ -1,8 +1,9 @@
 # Developer bootstrap
 
-The sandbox image contains the pinned Ansible control node. Repository state
-is mounted after image creation; application tools and the developer profile are
-restored by Ansible, not baked into the image.
+The sandbox image contains the pinned Ansible control node and GNU Stow.
+Repository state is mounted after image creation; Ansible installs application
+tools and clones the profile repository, then Stow links the profile from the
+home clone.
 
 ## Build and validate
 
@@ -30,21 +31,25 @@ ansible-playbook -i "$inventory" \
   /workspace/sandbox-kit/ansible/playbooks/tools.yml
 ansible-playbook -i "$inventory" \
   /workspace/sandbox-kit/ansible/playbooks/profile.yml \
-  --extra-vars profile_source=/workspace/sandbox-kit/configuration/profile
+  --extra-vars '{"profile_repository":"/workspace/sandbox-kit/.git"}'
+stow --dir "$HOME/.dotfiles" --target "$HOME" --adopt --restow configuration
 ```
 
-Use `ansible-playbook --check` for tool convergence verification; profile copy
-is idempotent when reapplied. Recreate the named sandbox after rebuilding the
-image; the provisioning repository and writable workspace are preserved.
+Ansible clones the mounted repository into `$HOME/.dotfiles` only when the path
+is absent, then Stow manages links from its top-level `configuration/` package.
+The clone playbook preserves an existing clone's branch and Git changes; Stow
+can adopt conflicting home files into the clone. Removing or recreating the
+sandbox also removes its home clone, so save local commits elsewhere first if
+they need to survive.
 
 ## Verification
 
 ```bash
 SBX_REPOSITORY_ROOT=/workspace/sandbox-kit \
   /workspace/sandbox-kit/final/scripts/verify-dev.sh \
-  /workspace/sandbox-kit/configuration/profile
+  /workspace/sandbox-kit/.git
 ```
 
 The script checks the image-owned Ansible control node, applies the tools and
-profile playbooks, reapplies the profile idempotently, and validates the
-installed developer commands and shell initialization.
+clone playbooks, creates a sandbox-local branch to verify preservation, checks
+Stow adoption and pruning, and validates links and installed developer tools.

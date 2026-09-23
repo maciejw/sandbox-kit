@@ -2,8 +2,8 @@
 # Image and developer-runtime acceptance; no application scaffolding or API requests.
 set -euo pipefail
 
-profile_source=${1:?Usage: verify-dev.sh <mounted-profile-source-directory>}
-[[ -d $profile_source ]] || { echo "Profile source is not a directory: $profile_source" >&2; exit 1; }
+profile_repository=${1:?Usage: verify-dev.sh <mounted-repository-git-directory>}
+[[ -d $profile_repository ]] || { echo "Profile repository is not a directory: $profile_repository" >&2; exit 1; }
 : "${HOME:?HOME must be set}"
 repository_root=${SBX_REPOSITORY_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)}
 repository_root=$(realpath -e -- "$repository_root")
@@ -26,8 +26,63 @@ ansible-playbook --version | grep -Fq 'core 2.21.4'
 ansible-lint --version | grep -Fq '26.9.0'
 ansible-playbook -i "$inventory" "$tools_playbook" >/dev/null
 ansible-playbook -i "$inventory" "$tools_playbook" --check >/dev/null
+profile_variables=$(jq -cn --arg profile_repository "$profile_repository" '{profile_repository: $profile_repository}')
 ansible-playbook -i "$inventory" "$profile_playbook" \
-  --extra-vars "profile_source=$profile_source" >/dev/null
+  --extra-vars "$profile_variables" >/dev/null
+profile_clone="$HOME/.dotfiles"
+[[ -d "$profile_clone/.git" ]]
+profile_origin=$(git -C "$profile_clone" remote get-url origin)
+encoded_profile_repository=$(python3 -c 'from urllib.parse import quote; import sys; print(quote(sys.argv[1], safe="/"))' "$profile_repository")
+case "$profile_origin" in
+  "$profile_repository"|"file://$profile_repository"|"file://$encoded_profile_repository") ;;
+  *) echo "Unexpected profile clone origin: $profile_origin" >&2; exit 1 ;;
+esac
+
+# A sandbox-local branch and Git state must survive profile initialization.
+git -C "$profile_clone" config user.name 'Profile Acceptance'
+git -C "$profile_clone" config user.email 'profile-acceptance@example.invalid'
+git -C "$profile_clone" switch -c acceptance/local-profile >/dev/null
+printf 'committed\n' > "$profile_clone/.profile-acceptance-commit"
+git -C "$profile_clone" add .profile-acceptance-commit
+git -C "$profile_clone" commit -m 'acceptance: sandbox-local profile commit' >/dev/null
+printf 'unstaged\n' >> "$profile_clone/.profile-acceptance-commit"
+printf 'staged\n' > "$profile_clone/.profile-acceptance-staged"
+git -C "$profile_clone" add .profile-acceptance-staged
+profile_branch=$(git -C "$profile_clone" branch --show-current)
+profile_head=$(git -C "$profile_clone" rev-parse HEAD)
+profile_status=$(git -C "$profile_clone" status --porcelain=v1 --untracked-files=all)
+profile_staged=$(git -C "$profile_clone" diff --cached --binary)
+profile_worktree=$(git -C "$profile_clone" diff --binary)
+ansible-playbook -i "$inventory" "$profile_playbook" \
+  --extra-vars "$profile_variables" >/dev/null
+[[ $(git -C "$profile_clone" branch --show-current) == "$profile_branch" ]]
+[[ $(git -C "$profile_clone" rev-parse HEAD) == "$profile_head" ]]
+[[ $(git -C "$profile_clone" status --porcelain=v1 --untracked-files=all) == "$profile_status" ]]
+[[ $(git -C "$profile_clone" diff --cached --binary) == "$profile_staged" ]]
+[[ $(git -C "$profile_clone" diff --binary) == "$profile_worktree" ]]
+
+# A conflicting home file is adopted into the writable clone by Stow.
+cp "$profile_clone/configuration/.bashrc" "$HOME/.bashrc"
+printf '\n# stow-adopt-acceptance\n' >> "$HOME/.bashrc"
+stow --dir "$profile_clone" --target "$HOME" --adopt --restow configuration
+grep -Fq '# stow-adopt-acceptance' "$profile_clone/configuration/.bashrc"
+[[ -L "$HOME/.bashrc" ]]
+
+# Restow removes links for package entries that were deleted.
+printf '# stow prune acceptance\n' > "$profile_clone/configuration/.stow-prune-acceptance"
+stow --dir "$profile_clone" --target "$HOME" --adopt --restow configuration
+[[ -L "$HOME/.stow-prune-acceptance" ]]
+rm "$profile_clone/configuration/.stow-prune-acceptance"
+stow --dir "$profile_clone" --target "$HOME" --adopt --restow configuration
+[[ ! -e "$HOME/.stow-prune-acceptance" && ! -L "$HOME/.stow-prune-acceptance" ]]
+
+for profile_link in .bashrc .gitconfig .config/powershell/Microsoft.PowerShell_profile.ps1; do
+  resolved_profile_link=$(readlink -f "$HOME/$profile_link")
+  case "$resolved_profile_link" in
+    "$profile_clone/configuration/"*) ;;
+    *) echo "Profile link escapes the home clone: $profile_link -> $resolved_profile_link" >&2; exit 1 ;;
+  esac
+done
 git --version
 pwsh --version
 rpm -q powershell docker-compose-plugin
@@ -59,4 +114,4 @@ oh-my-posh version
 [[ $(readlink -- "$HOME/.local/share/sbx-tools/dotnet/current") == "$HOME/.local/share/sbx-tools/dotnet/"* ]]
 bash -ic 'type z; type fzf; alias ls; alias cat' </dev/null
 ansible-playbook --version
-printf 'PASS: developer tools, Ansible convergence, and Bash initialization\n'
+printf 'PASS: developer tools, clone preservation, Stow adoption/pruning, and Bash initialization\n'

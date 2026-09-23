@@ -6,8 +6,8 @@ See [VERIFICATION.md](VERIFICATION.md) for results and limitations.
 
 The image supplies AlmaLinux userspace; SBX supplies the microVM and kernel.
 Podman and its nested containers run as the non-root `agent` user, UID/GID 1000.
-This kit opens Bash and includes a pinned Ansible control node, PowerShell,
-Docker Compose, Git, and the rootless Podman prerequisites. The base
+This kit opens Bash and includes a pinned Ansible control node, GNU Stow,
+PowerShell, Docker Compose, Git, and the rootless Podman prerequisites. The base
 image keeps the Microsoft and Docker package repositories configured, but does
 not install the Docker CLI or daemon. Repository playbooks, developer tools,
 and personal profile files are not baked into the image. Recreate the sandbox
@@ -69,42 +69,53 @@ sbx run --name alma9-dev
 .\Initialize-SbxSandbox.ps1 -Name alma9-dev
 ```
 
-The initialization command runs the canonical Ansible tools playbook and then
-copies `/d/sandbox-kit/configuration/profile` into the agent home.
-The repository mount is provisioning input; use `D:\sandbox-workspace` for
-active project files. Pass `-RepositoryPath` to the initializer only when the
-repository mount uses a different guest path.
+The initialization command runs the tools playbook, asks Ansible to clone the
+mounted repository's `.git` directory into `/home/agent/.dotfiles` when absent,
+then runs GNU Stow from that home clone. The top-level `configuration/` package
+is linked into `/home/agent`; each profile link resolves to a file under
+`/home/agent/.dotfiles/configuration`. The clone is writable and the repository
+mount is read-only. A conflicting home file is adopted into the clone and
+becomes a Git change.
+
+Create local profile branches and commits inside the sandbox clone, for example
+with `git -C "$HOME/.dotfiles" switch -c profile/my-changes`. Its `origin` is
+the mounted repository, so `git -C "$HOME/.dotfiles" pull origin master` can
+bring in host commits. The repository mount is provisioning input; use
+`D:\sandbox-workspace` for active project files. Pass `-RepositoryPath` to the
+initializer only when the repository mount uses a different guest path.
 
 When replacing an existing sandbox after rebuilding the image, add
-`-Recreate`. It removes only that sandbox; the mounted project and profile
-directories remain on the host.
+`-Recreate`. It removes the sandbox and its home clone, including local commits
+that have not been saved elsewhere; the mounted repository and project
+workspace remain on the host.
 
 The image is already complete at this point. Inside the new sandbox, the
 mounted repository supplies the inventory and playbooks:
 
 ```bash
-git clone <developer-configuration-repository> /workspace/developer-config
 ansible-playbook -i /workspace/sandbox-kit/ansible/inventory/hosts.yml \
   /workspace/sandbox-kit/ansible/playbooks/tools.yml
 ```
 
-The document composes the developer's tools. Restore the developer profile
-separately:
+The tools playbook composes the developer's tools. To initialize the profile
+separately, clone the mounted repository into the agent home, then Stow its
+profile package:
 
 ```bash
 ansible-playbook -i /workspace/sandbox-kit/ansible/inventory/hosts.yml \
   /workspace/sandbox-kit/ansible/playbooks/profile.yml \
-  --extra-vars profile_source=/workspace/sandbox-kit/configuration/profile
+  --extra-vars '{"profile_repository":"/workspace/sandbox-kit/.git"}'
+stow --dir "$HOME/.dotfiles" --target "$HOME" --adopt --restow configuration
 ```
 
-The developer profile is mounted read-only from the repository; edit those files
-on the host. The separate workspace is read-write for active project work. Do
-not put `/home/agent/.local/share/containers` in the developer profile; that
-path remains on the sandbox-specific volume.
+Ansible only creates and validates the home clone. Stow manages links from its
+`configuration/` package. The separate workspace is read-write for active
+project files. Do not put `/home/agent/.local/share/containers` in the developer
+profile; that path remains on the sandbox-specific volume.
 
-Creating a new sandbox from the same image and applying the same document and
-developer profile is the reset workflow; changing those preferences does not
-require an image rebuild.
+Creating a new sandbox from the same image and initializing it again is the
+reset workflow; local clone commits must be saved elsewhere before removing a
+sandbox if they need to survive recreation.
 
 The earlier runtime-only sandbox `alma9-podman` is not changed by rebuilding.
 Use the second command to connect to the development sandbox after creating it;

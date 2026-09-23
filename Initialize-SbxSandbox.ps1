@@ -10,7 +10,7 @@ if ([string]::IsNullOrWhiteSpace($RepositoryPath)) {
     throw 'RepositoryPath must be the guest path of the mounted repository.'
 }
 $repositoryPath = $RepositoryPath.TrimEnd('/')
-$profilePath = "$repositoryPath/configuration/profile"
+$profileRepositoryPath = "$repositoryPath/.git"
 $inventoryPath = "$repositoryPath/ansible/inventory/hosts.yml"
 $toolsPlaybookPath = "$repositoryPath/ansible/playbooks/tools.yml"
 $profilePlaybookPath = "$repositoryPath/ansible/playbooks/profile.yml"
@@ -28,11 +28,13 @@ function Invoke-RequiredCommand {
     }
 }
 
-$commonArguments = @(
+$execArguments = @(
     'exec',
     '--user', 'agent',
     '--workdir', $repositoryPath,
-    $Name,
+    $Name
+)
+$commonArguments = $execArguments + @(
     'ansible-playbook',
     '-i', $inventoryPath
 )
@@ -40,10 +42,21 @@ $commonArguments = @(
 Write-Host "Installing application tools in sandbox $Name ..."
 Invoke-RequiredCommand -Name 'sbx' -CommandArguments ($commonArguments + @($toolsPlaybookPath))
 
-Write-Host "Restoring the developer profile from $profilePath ..."
+Write-Host "Ensuring the profile repository clone in sandbox $Name ..."
+$profileVariables = @{ profile_repository = $profileRepositoryPath } | ConvertTo-Json -Compress
 Invoke-RequiredCommand -Name 'sbx' -CommandArguments ($commonArguments + @(
     $profilePlaybookPath,
-    '--extra-vars', "profile_source=$profilePath"
+    '--extra-vars', $profileVariables
+))
+
+Write-Host "Stowing the profile from the home clone in sandbox $Name ..."
+Invoke-RequiredCommand -Name 'sbx' -CommandArguments ($execArguments + @(
+    'stow',
+    '--dir', '/home/agent/.dotfiles',
+    '--target', '/home/agent',
+    '--adopt',
+    '--restow',
+    'configuration'
 ))
 
 Write-Host "Sandbox $Name is initialized."

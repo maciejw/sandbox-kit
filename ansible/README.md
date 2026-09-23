@@ -11,9 +11,10 @@ and developer profile at runtime.
 tools, including versions, URLs, checksums, archive formats, strip-component
 values, and command maps.
 
-`inventory/group_vars/sandbox/profile.yml` contains the default guest path for
-the mounted developer profile. Override `profile_source` when a sandbox uses a
-different mount.
+`inventory/group_vars/sandbox/profile.yml` contains the default guest path to
+the read-only host-mounted Git repository. The profile playbook clones it to
+`$HOME/.dotfiles` only when that path is absent. Override `profile_repository`
+when the repository mount uses a different guest path.
 
 ## Usage
 
@@ -27,16 +28,21 @@ inventory=ansible/inventory/hosts.yml
 ansible-playbook -i "$inventory" ansible/playbooks/tools.yml
 ansible-playbook -i "$inventory" ansible/playbooks/tools.yml --check
 ansible-playbook -i "$inventory" ansible/playbooks/profile.yml \
-  --extra-vars profile_source=/d/sandbox-kit/configuration/profile
+  --extra-vars '{"profile_repository":"/d/sandbox-kit/.git"}'
+stow --dir "$HOME/.dotfiles" --target "$HOME" --adopt --restow configuration
 ```
 
-The inventory supplies the default profile source. Callers may override the
-source with `--extra-vars`; the profile playbook copies the profile tree into
-`$HOME` and overwrites existing files.
+The inventory supplies the default repository path. For an existing
+`$HOME/.dotfiles`, the playbook checks that it is a directory whose `origin`
+points to that repository; it does not fetch, switch branches, or change its
+commits or working tree. Create and commit local profile changes on a branch in
+that home clone. GNU Stow runs separately after Ansible and links the top-level
+`configuration/` package into `$HOME`; `--adopt` places conflicting home files
+into the clone, where Git reports those edits.
 
 Tools are stored under `~/.local/share/sbx-tools`, downloads under
 `~/.cache/sbx-tools`, state under `~/.local/state/sbx-tools`, and command links
-under `~/.local/bin`. Ansible restores the profile files directly into `$HOME`.
+under `~/.local/bin`. Stow manages profile links from `~/.dotfiles/configuration`.
 
 ## Direct checks
 

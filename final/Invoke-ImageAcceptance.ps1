@@ -19,7 +19,7 @@ runuser -u agent -- env \
   HOME=/home/agent \
   SBX_REPOSITORY_ROOT="$repository" \
   bash "$repository/final/scripts/verify-dev.sh" \
-    "$repository/configuration/profile"
+    "$repository/.git"
 '@
 
 $arguments = @(
