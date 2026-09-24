@@ -44,12 +44,13 @@ they need to survive.
 
 ## Verification
 
-```bash
-SBX_REPOSITORY_ROOT=/workspace/sandbox-kit \
-  /workspace/sandbox-kit/final/scripts/verify-dev.sh \
-  /workspace/sandbox-kit/.git
+```powershell
+pwsh -NoLogo -NoProfile -File .\final\Invoke-ImageAcceptance.ps1 -Image localhost/almalinux9-sbx:dev
 ```
 
-The script checks the image-owned Ansible control node, applies the tools and
-clone playbooks, creates a sandbox-local branch to verify preservation, checks
-Stow adoption and pruning, and validates links and installed developer tools.
+The disposable wrapper runs `verify-dev.sh` inside a `--rm` container. The
+script is disposable-only: it requires `SBX_DISPOSABLE_ACCEPTANCE=1` and
+refuses to run when `$HOME/.dotfiles` already exists. It checks the image-owned
+Ansible control node, applies the tools and clone playbooks, creates a
+sandbox-local branch to verify preservation, checks Stow adoption and pruning,
+and validates links and installed developer tools.

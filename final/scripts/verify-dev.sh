@@ -5,6 +5,15 @@ set -euo pipefail
 profile_repository=${1:?Usage: verify-dev.sh <mounted-repository-git-directory>}
 [[ -d $profile_repository ]] || { echo "Profile repository is not a directory: $profile_repository" >&2; exit 1; }
 : "${HOME:?HOME must be set}"
+if [[ ${SBX_DISPOSABLE_ACCEPTANCE:-} != 1 ]]; then
+  echo 'verify-dev.sh requires SBX_DISPOSABLE_ACCEPTANCE=1; use the disposable image acceptance wrapper.' >&2
+  exit 1
+fi
+profile_clone="$HOME/.dotfiles"
+if [[ -e "$profile_clone" || -L "$profile_clone" ]]; then
+  echo "verify-dev.sh refuses a pre-existing $profile_clone; use a disposable home." >&2
+  exit 1
+fi
 repository_root=${SBX_REPOSITORY_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)}
 repository_root=$(realpath -e -- "$repository_root")
 inventory="$repository_root/ansible/inventory/hosts.yml"
@@ -29,7 +38,6 @@ ansible-playbook -i "$inventory" "$tools_playbook" --check >/dev/null
 profile_variables=$(jq -cn --arg profile_repository "$profile_repository" '{profile_repository: $profile_repository}')
 ansible-playbook -i "$inventory" "$profile_playbook" \
   --extra-vars "$profile_variables" >/dev/null
-profile_clone="$HOME/.dotfiles"
 [[ -d "$profile_clone/.git" ]]
 profile_origin=$(git -C "$profile_clone" remote get-url origin)
 encoded_profile_repository=$(python3 -c 'from urllib.parse import quote; import sys; print(quote(sys.argv[1], safe="/"))' "$profile_repository")
@@ -44,7 +52,11 @@ git -C "$profile_clone" config user.email 'profile-acceptance@example.invalid'
 git -C "$profile_clone" switch -c acceptance/local-profile >/dev/null
 printf 'committed\n' > "$profile_clone/.profile-acceptance-commit"
 git -C "$profile_clone" add .profile-acceptance-commit
-git -C "$profile_clone" commit -m 'acceptance: sandbox-local profile commit' >/dev/null
+printf 'unrelated staged\n' > "$profile_clone/.profile-acceptance-unrelated"
+git -C "$profile_clone" add .profile-acceptance-unrelated
+git -C "$profile_clone" commit --only -m 'acceptance: sandbox-local profile commit' -- .profile-acceptance-commit >/dev/null
+git -C "$profile_clone" diff --cached --name-only | grep -Fxq '.profile-acceptance-unrelated'
+! git -C "$profile_clone" diff-tree --no-commit-id --name-only -r HEAD | grep -Fxq '.profile-acceptance-unrelated'
 printf 'unstaged\n' >> "$profile_clone/.profile-acceptance-commit"
 printf 'staged\n' > "$profile_clone/.profile-acceptance-staged"
 git -C "$profile_clone" add .profile-acceptance-staged

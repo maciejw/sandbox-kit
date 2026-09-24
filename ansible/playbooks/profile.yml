@@ -19,6 +19,39 @@
         fail_msg: "{{ profile_clone_path }} exists but is not a directory; leaving it untouched."
       when: profile_clone_status.stat.exists
 
+    - name: Resolve the existing dotfiles path without changing it
+      ansible.builtin.command:
+        argv:
+          - realpath
+          - -e
+          - "{{ profile_clone_path }}"
+      register: profile_clone_resolved_path
+      changed_when: false
+      failed_when: false
+      when: profile_clone_status.stat.exists
+
+    - name: Read the existing Git worktree root without changing it
+      ansible.builtin.command:
+        argv:
+          - git
+          - -C
+          - "{{ profile_clone_path }}"
+          - rev-parse
+          - --show-toplevel
+      register: profile_clone_root
+      changed_when: false
+      failed_when: false
+      when: profile_clone_status.stat.exists
+
+    - name: Refuse a path nested below another Git checkout
+      ansible.builtin.assert:
+        that:
+          - profile_clone_resolved_path.rc == 0
+          - profile_clone_root.rc == 0
+          - (profile_clone_root.stdout | trim) == (profile_clone_resolved_path.stdout | trim)
+        fail_msg: "{{ profile_clone_path }} is not the root of a Git checkout; leaving it untouched."
+      when: profile_clone_status.stat.exists
+
     - name: Read the existing clone origin without updating it
       ansible.builtin.command:
         argv:
