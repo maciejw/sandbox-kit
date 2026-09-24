@@ -56,7 +56,10 @@ printf 'unrelated staged\n' > "$profile_clone/.profile-acceptance-unrelated"
 git -C "$profile_clone" add .profile-acceptance-unrelated
 git -C "$profile_clone" commit --only -m 'acceptance: sandbox-local profile commit' -- .profile-acceptance-commit >/dev/null
 git -C "$profile_clone" diff --cached --name-only | grep -Fxq '.profile-acceptance-unrelated'
-! git -C "$profile_clone" diff-tree --no-commit-id --name-only -r HEAD | grep -Fxq '.profile-acceptance-unrelated'
+if git -C "$profile_clone" diff-tree --no-commit-id --name-only -r HEAD | grep -Fxq '.profile-acceptance-unrelated'; then
+  echo 'Acceptance commit unexpectedly included an unrelated staged file.' >&2
+  exit 1
+fi
 printf 'unstaged\n' >> "$profile_clone/.profile-acceptance-commit"
 printf 'staged\n' > "$profile_clone/.profile-acceptance-staged"
 git -C "$profile_clone" add .profile-acceptance-staged
