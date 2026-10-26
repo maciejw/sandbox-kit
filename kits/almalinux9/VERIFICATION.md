@@ -1,5 +1,8 @@
 # Verification — 2026-09-17
 
+Historical evidence: paths below reflect the layout at verification time.
+The kit now lives in `kits/almalinux9`; image sources are in `images/almalinux9`.
+
 ## Final configuration
 
 - Host: Windows amd64; SBX `v0.43.0` (`79805a6e3c6667520dc2da4f6bdeddae9b700969`).

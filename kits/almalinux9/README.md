@@ -13,7 +13,9 @@ not install the Docker CLI or daemon. Repository playbooks, developer tools,
 and personal profile files are not baked into the image. Recreate the sandbox
 to reset mutable state; rebuilding the image is not part of the normal
 developer workflow.
-See [Developer bootstrap](../final/README.md) for the contract and commands.
+See [Developer bootstrap](../../final/README.md) for the contract and commands.
+The image sources live in [images/almalinux9](../../images/almalinux9/README.md);
+this directory contains the separately distributable sandbox kit.
 
 ## What was missing from the original proposal
 
@@ -46,7 +48,7 @@ Desktop or a `docker` CLI on PATH.
 
 ```powershell
 .\Publish-SbxImage.ps1
-sbx kit validate .\sbx-almalinux9 --json
+sbx kit validate .\kits\almalinux9 --json
 ```
 
 Check that each command succeeds before running the next. Docker build/save
@@ -93,8 +95,8 @@ The image is already complete at this point. Inside the new sandbox, the
 mounted repository supplies the inventory and playbooks:
 
 ```bash
-ansible-playbook -i /workspace/sandbox-kit/ansible/inventory/hosts.yml \
-  /workspace/sandbox-kit/ansible/playbooks/tools.yml
+ansible-playbook -i /d/sandbox-kit/ansible/inventory/hosts.yml \
+  /d/sandbox-kit/ansible/playbooks/tools.yml
 ```
 
 The tools playbook composes the developer's tools. To initialize the profile
@@ -102,9 +104,9 @@ separately, clone the mounted repository into the agent home, then Stow its
 profile package:
 
 ```bash
-ansible-playbook -i /workspace/sandbox-kit/ansible/inventory/hosts.yml \
-  /workspace/sandbox-kit/ansible/playbooks/profile.yml \
-  --extra-vars '{"profile_repository":"/workspace/sandbox-kit/.git"}'
+ansible-playbook -i /d/sandbox-kit/ansible/inventory/hosts.yml \
+  /d/sandbox-kit/ansible/playbooks/profile.yml \
+  --extra-vars '{"profile_repository":"/d/sandbox-kit/.git"}'
 stow --dir "$HOME/.dotfiles" --target "$HOME" --adopt --restow configuration
 ```
 
@@ -128,9 +130,9 @@ From the host, verify this machine's mounted workspace using its guest path
 (SBX prints that mapping during creation):
 
 ```powershell
-sbx exec alma9-podman verify-sbx /d/sandbox-kit/sbx-almalinux9
+sbx exec alma9-podman verify-sbx /d/sandbox-kit
 sbx stop alma9-podman
-sbx exec alma9-podman verify-sbx /d/sandbox-kit/sbx-almalinux9
+sbx exec alma9-podman verify-sbx /d/sandbox-kit
 ```
 
 `sbx exec` starts a stopped sandbox. From an interactive shell, run
@@ -194,12 +196,12 @@ perform network downloads during `RUN`.
 
 ## Files
 
-- `Dockerfile`: AlmaLinux userspace, user, utilities and CA path compatibility.
+- `../../images/almalinux9/Dockerfile`: AlmaLinux userspace and image packages.
 - `spec.yaml`: SBX schema v2, shell entrypoint, storage, privilege and setup.
-- `sync-sbx-ca.sh`: imports the runtime CA into AlmaLinux's trust store.
-- `setup-sbx-runtime.sh`: CA setup, TUN device and storage ownership.
-- `sbx-shell.sh`: synchronous runtime setup before Bash.
-- `verify-sbx.sh`: runtime acceptance and limitation diagnostics.
+- `../../images/almalinux9/sync-sbx-ca.sh`: imports the runtime proxy CA.
+- `../../images/almalinux9/setup-sbx-runtime.sh`: CA, TUN and storage setup.
+- `../../images/almalinux9/sbx-shell.sh`: runtime setup before Bash.
+- `../../images/almalinux9/verify-sbx.sh`: runtime acceptance diagnostics.
 
 ## References
 

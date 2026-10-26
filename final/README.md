@@ -26,12 +26,12 @@ sbx run --name alma9-dev
 The initializer runs:
 
 ```bash
-inventory=/workspace/sandbox-kit/ansible/inventory/hosts.yml
+inventory=/d/sandbox-kit/ansible/inventory/hosts.yml
 ansible-playbook -i "$inventory" \
-  /workspace/sandbox-kit/ansible/playbooks/tools.yml
+  /d/sandbox-kit/ansible/playbooks/tools.yml
 ansible-playbook -i "$inventory" \
-  /workspace/sandbox-kit/ansible/playbooks/profile.yml \
-  --extra-vars '{"profile_repository":"/workspace/sandbox-kit/.git"}'
+  /d/sandbox-kit/ansible/playbooks/profile.yml \
+  --extra-vars '{"profile_repository":"/d/sandbox-kit/.git"}'
 stow --dir "$HOME/.dotfiles" --target "$HOME" --adopt --restow configuration
 ```
 

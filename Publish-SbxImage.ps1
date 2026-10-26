@@ -7,7 +7,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = (Resolve-Path -LiteralPath $PSScriptRoot).Path
-$dockerfilePath = Join-Path $repositoryRoot 'sbx-almalinux9/Dockerfile'
+$dockerfilePath = Join-Path $repositoryRoot 'images/almalinux9/Dockerfile'
 if (-not (Test-Path -LiteralPath $dockerfilePath -PathType Leaf)) {
     throw "The sandbox Dockerfile was not found: $dockerfilePath"
 }

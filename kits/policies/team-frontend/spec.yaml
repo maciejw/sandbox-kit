@@ -1,0 +1,16 @@
+schemaVersion: "2"
+kind: mixin
+name: team-frontend-policy
+displayName: Frontend team network policy example
+description: Sample frontend service access and an explicit analytics restriction.
+
+# Replace example.com hosts with your team's real endpoints.
+# No port on a deny entry means it applies to every port for that host.
+permissions:
+  network:
+    allow:
+      - "registry.npmjs.org:443"
+      - "api.frontend.example.com:443"
+      - "assets.frontend.example.com:443"
+    deny:
+      - "analytics.frontend.example.com"

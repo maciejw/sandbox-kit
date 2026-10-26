@@ -10,7 +10,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = (Resolve-Path -LiteralPath $PSScriptRoot).Path
-$kitPath = Join-Path $repositoryRoot 'sbx-almalinux9'
+$kitPath = Join-Path $repositoryRoot 'kits/almalinux9'
 if (-not (Test-Path -LiteralPath (Join-Path $kitPath 'spec.yaml') -PathType Leaf)) {
     throw "The sandbox kit was not found: $kitPath"
 }

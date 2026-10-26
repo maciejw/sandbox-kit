@@ -61,10 +61,10 @@ command -v newgidmap
 visudo -cf /etc/sudoers
 VALIDATE_ROOTLESS
 
-COPY --chmod=0755 sbx-almalinux9/verify-sbx.sh /usr/local/bin/verify-sbx
-COPY --chmod=0755 sbx-almalinux9/sync-sbx-ca.sh /usr/local/sbin/sync-sbx-ca
-COPY --chmod=0755 sbx-almalinux9/setup-sbx-runtime.sh /usr/local/sbin/setup-sbx-runtime
-COPY --chmod=0755 sbx-almalinux9/sbx-shell.sh /usr/local/bin/sbx-shell
+COPY --chmod=0755 images/almalinux9/verify-sbx.sh /usr/local/bin/verify-sbx
+COPY --chmod=0755 images/almalinux9/sync-sbx-ca.sh /usr/local/sbin/sync-sbx-ca
+COPY --chmod=0755 images/almalinux9/setup-sbx-runtime.sh /usr/local/sbin/setup-sbx-runtime
+COPY --chmod=0755 images/almalinux9/sbx-shell.sh /usr/local/bin/sbx-shell
 
 RUN ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /etc/pki/tls/certs/ca-certificates.crt
 

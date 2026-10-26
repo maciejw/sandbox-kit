@@ -1,0 +1,17 @@
+schemaVersion: "2"
+kind: mixin
+name: team-backend-policy
+displayName: Backend team network policy example
+description: Sample backend service access and an explicit telemetry restriction.
+
+# Replace example.com hosts with your team's real endpoints.
+# These rules supplement the base kit and host policy; they are not an
+# exclusive allowlist. Deny rules take precedence over matching allow rules.
+permissions:
+  network:
+    allow:
+      - "api.nuget.org:443"
+      - "packages.backend.example.com:443"
+      - "api.backend.example.com:443"
+    deny:
+      - "telemetry.backend.example.com"
